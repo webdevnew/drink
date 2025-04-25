@@ -1,91 +1,107 @@
 const input = document.getElementById('drinkInput');
 const list = document.getElementById('drinkList');
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbx4icXnuR3FmW8EQYRsWNC008UIJNNLPEnX7_WwzShzebGbeJMOWbM10nAm6GTvW4fvRw/exec'; // <-- Use the Web App URL from Apps Script
 
-let drinks = JSON.parse(localStorage.getItem('drinks')) || [];
+let drinks = [];
 
-// Function to format time
-function formatTime(date) {
-  return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+function formatTime(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// Render the drinks on the list
+function fetchDrinks() {
+  fetch(SHEETS_URL)
+    .then(res => res.json())
+    .then(data => {
+      // Skip header row
+      drinks = data.slice(1).map((row, index) => ({
+        name: row[0],
+        time: row[1],
+        finished: row[2] === true || row[2] === "TRUE",
+        index: index
+      }));
+      renderDrinks();
+    })
+    .catch(err => {
+      console.error("Fetch error:", err);
+  });
+}
+
 function renderDrinks() {
-  list.innerHTML = '';  // Clear the list first
-  
-  // Loop through each drink
-  drinks.forEach((drink, index) => {
+  list.innerHTML = '';
+  drinks.forEach(drink => {
     const li = document.createElement('li');
-    
-    // Set background color based on whether the drink is finished or not
-    li.style.backgroundColor = drink.finished ? 'hsl(0, 80%, 70.00%)' : 'hsl(140, 80%, 70%)'; // Red if finished, green if not
-    
-    // Create the drink container div
-    const drinkContainer = document.createElement('div');
-    drinkContainer.className = 'drink-container';
-    
-    // Create the name-time div
-    const nameTimeDiv = document.createElement('div');
-    nameTimeDiv.className = 'name-time';
+    li.style.backgroundColor = drink.finished ? 'hsl(0, 80%, 70%)' : 'hsl(140, 80%, 70%)';
 
-    // Create the name div
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'name';
-    nameDiv.textContent = drink.name;
+    const container = document.createElement('div');
+    container.className = 'drink-container';
 
-    // Create the time div
-    const timeDiv = document.createElement('div');
-    timeDiv.className = 'time';
-    timeDiv.textContent = formatTime(drink.time);
+    const nameTime = document.createElement('div');
+    nameTime.className = 'name-time';
 
-    // Create the icon (tick)
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = drink.name;
+
+    const time = document.createElement('div');
+    time.className = 'time';
+    time.textContent = formatTime(drink.time);
+
     const icon = document.createElement('i');
-    icon.className = 'bx bxs-check-square';  // Add Boxicon class to the icon
-    icon.style.cursor = 'pointer';  // Make sure it's clickable
+    icon.className = 'bx bxs-check-square';
+    icon.style.cursor = 'pointer';
     icon.style.color = drink.finished ? 'hsl(0, 100%, 30%)' : 'hsl(140, 100%, 30%)';
 
-    // Attach the icon click event
     icon.onclick = () => {
-      drinks[index].finished = true;  // Mark this drink as finished
-      localStorage.setItem('drinks', JSON.stringify(drinks));  // Save to localStorage
-      renderDrinks();  // Re-render the drinks list
+      fetch(SHEETS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'finish',
+          index: drink.index
+        })
+      }).then(fetchDrinks);
     };
 
-    // Append the elements together
-    nameTimeDiv.appendChild(nameDiv);
-    nameTimeDiv.appendChild(timeDiv);
-    drinkContainer.appendChild(nameTimeDiv);
-    drinkContainer.appendChild(icon);  // Append icon to drink container
-
-    li.appendChild(drinkContainer);
+    nameTime.appendChild(name);
+    nameTime.appendChild(time);
+    container.appendChild(nameTime);
+    container.appendChild(icon);
+    li.appendChild(container);
     list.appendChild(li);
   });
 }
 
-// Add a new drink to the list
 function addDrink() {
   const name = input.value.trim();
-  if (!name) return;  // Do nothing if the input is empty
+  if (!name) return;
 
   const drink = {
+    action: 'add',
     name,
-    time: new Date().toISOString(),  // Store the current time
-    finished: false  // Initially, drinks are not finished
+    time: new Date().toISOString(),
+    finished: false
   };
 
-  drinks.push(drink);
-  localStorage.setItem('drinks', JSON.stringify(drinks));  // Save to localStorage
-  input.value = '';  // Clear the input field
-  renderDrinks();  // Re-render the drinks list
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(drink)
+  }).then(() => {
+    input.value = '';
+    fetchDrinks();
+  });
 }
 
-// Clear all drinks from the log
 function clearDrinks() {
-  if (confirm("Are you sure you want to clear the log?")) {
-    drinks = [];
-    localStorage.removeItem('drinks');  // Remove the log from localStorage
-    renderDrinks();  // Re-render the drinks list
-  }
+  if (!confirm("Are you sure you want to clear the log?")) return;
+
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'clear' })
+  }).then(fetchDrinks);
 }
 
-// Initial render when the page loads
-renderDrinks();
+// Call this on page load
+fetchDrinks();
