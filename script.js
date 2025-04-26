@@ -52,15 +52,16 @@ function renderDrinks() {
     icon.style.color = drink.finished ? 'hsl(0, 100%, 30%)' : 'hsl(140, 100%, 30%)';
 
     icon.onclick = () => {
-      fetch(SHEETS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'finish',
-          index: drink.index
-        })
-      }).then(fetchDrinks);
-    };
+    fetch(SHEETS_URL, { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'finish',
+        index: drink.index
+      })
+    }).then(fetchDrinks);
+  };
+
 
     nameTime.appendChild(name);
     nameTime.appendChild(time);
@@ -95,10 +96,10 @@ function addDrink() {
 function clearDrinks() {
   if (!confirm("Are you sure you want to clear the log?")) return;
 
-  fetch(SHEETS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'clear' })
+  fetch(SHEETS_URL, { 
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ action: 'finish', index: drink.index })
   }).then(fetchDrinks);
 }
 
