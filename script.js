@@ -1,6 +1,6 @@
 const input = document.getElementById('drinkInput');
 const list = document.getElementById('drinkList');
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycby2r-i4ejJu5C_UN_Bg3_uj2jYLffTnwcWx4qiAzJmqx0g2Cs5K0JuoIeDdPUdZcFjYfw/exec'; // <-- updated Web App URL
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycby2r-i4ejJu5C_UN_Bg3_uj2jYLffTnwcWx4qiAzJmqx0g2Cs5K0JuoIeDdPUdZcFjYfw/exec';
 
 let drinks = [];
 
@@ -23,70 +23,17 @@ function fetchDrinks() {
     })
     .catch(err => {
       console.error("Fetch error:", err);
-  });
-}
-
-function renderDrinks() {
-  list.innerHTML = '';
-  drinks.forEach(drink => {
-    const li = document.createElement('li');
-    li.style.backgroundColor = drink.finished ? 'hsl(0, 80%, 70%)' : 'hsl(140, 80%, 70%)';
-
-    const container = document.createElement('div');
-    container.className = 'drink-container';
-
-    const nameTime = document.createElement('div');
-    nameTime.className = 'name-time';
-
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = drink.name;
-
-    const time = document.createElement('div');
-    time.className = 'time';
-    time.textContent = formatTime(drink.time);
-
-    const icon = document.createElement('i');
-    icon.className = 'bx bxs-check-square';
-    icon.style.cursor = 'pointer';
-    icon.style.color = drink.finished ? 'hsl(0, 100%, 30%)' : 'hsl(140, 100%, 30%)';
-
-    icon.onclick = () => {
-    fetch(SHEETS_URL, { 
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'finish',
-        index: drink.index
-      })
-    }).then(fetchDrinks);
-  };
-
-
-    nameTime.appendChild(name);
-    nameTime.appendChild(time);
-    container.appendChild(nameTime);
-    container.appendChild(icon);
-    li.appendChild(container);
-    list.appendChild(li);
-  });
+    });
 }
 
 function addDrink() {
   const name = input.value.trim();
   if (!name) return;
 
-  const drink = {
-    action: 'add',
-    name,
-    time: new Date().toISOString(),
-    finished: false
-  };
-
   fetch(SHEETS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(drink)
+    body: JSON.stringify({ action: 'add', name, time: new Date().toISOString(), finished: false })
   }).then(() => {
     input.value = '';
     fetchDrinks();
@@ -96,10 +43,10 @@ function addDrink() {
 function clearDrinks() {
   if (!confirm("Are you sure you want to clear the log?")) return;
 
-  fetch(SHEETS_URL, { 
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ action: 'finish', index: drink.index })
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'clear' })
   }).then(fetchDrinks);
 }
 
