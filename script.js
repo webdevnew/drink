@@ -1,6 +1,6 @@
 const input = document.getElementById('drinkInput');
 const list = document.getElementById('drinkList');
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwT8m_pgphmehmxCabE0L2hvCYP0c36qEuyPFSrEteJbefWC9Brf4sj8JEgbncgSFdbqg/exec'; // <-- Use the Web App URL from Apps Script
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwT8m_pgphmehmxCabE0L2hvCYP0c36qEuyPFSrEteJbefWC9Brf4sj8JEgbncgSFdbqg/exec'; // <-- updated Web App URL
 
 let drinks = [];
 
@@ -13,7 +13,6 @@ function fetchDrinks() {
   fetch(SHEETS_URL)
     .then(res => res.json())
     .then(data => {
-      // Skip header row
       drinks = data.slice(1).map((row, index) => ({
         name: row[0],
         time: row[1],
