@@ -1,6 +1,6 @@
 const input = document.getElementById('drinkInput');
 const list = document.getElementById('drinkList');
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbx4icXnuR3FmW8EQYRsWNC008UIJNNLPEnX7_WwzShzebGbeJMOWbM10nAm6GTvW4fvRw/exec'; // <-- Use the Web App URL from Apps Script
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwT8m_pgphmehmxCabE0L2hvCYP0c36qEuyPFSrEteJbefWC9Brf4sj8JEgbncgSFdbqg/exec'; // <-- Use the Web App URL from Apps Script
 
 let drinks = [];
 
